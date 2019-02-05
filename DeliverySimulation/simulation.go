@@ -116,6 +116,78 @@ func (truck *Truck) addLoad(trip Trip) error {
 	return nil
 }
 
+func (pickup *Pickup) addLoad(trip Trip) error {
+
+	//initialize needed variables
+	var distance int
+	var timeRequired int
+
+	/*Error checks*/
+	if pickup.destination != "" {
+		return errors.New("Error: Other destination")
+	}
+
+	if trip.weight > pickup.capacity {
+		return errors.New("Error: Out of capacity")
+	}
+
+	//Set distance from Montreal to 200 km and 400 km for Toronto
+	if trip.destination == "Montreal" {
+		distance = 200.0
+	} else {
+		distance = 400.0 //Toronto
+	}
+
+	//Calculate time required
+	timeRequired = (distance) / int(pickup.speed)
+
+	if trip.deadline > timeRequired {
+		return errors.New("Error: Other destination")
+	}
+
+	//Passed all error checks
+	pickup.destination = trip.destination
+	pickup.capacity = trip.weight
+
+	return nil
+}
+
+func (trainCar *TrainCar) addLoad(trip Trip) error {
+
+	//initialize needed variables
+	var distance int
+	var timeRequired int
+
+	/*Error checks*/
+	if trainCar.destination != "" {
+		return errors.New("Error: Other destination")
+	}
+
+	if trip.weight > trainCar.capacity {
+		return errors.New("Error: Out of capacity")
+	}
+
+	//Set distance from Montreal to 200 km and 400 km for Toronto
+	if trip.destination == "Montreal" {
+		distance = 200.0
+	} else {
+		distance = 400.0 //Toronto
+	}
+
+	//Calculate time required
+	timeRequired = (distance) / int(trainCar.speed)
+
+	if trip.deadline > timeRequired {
+		return errors.New("Error: Other destination")
+	}
+
+	//Passed all error checks
+	trainCar.destination = trip.destination
+	trainCar.capacity = trip.weight
+
+	return nil
+}
+
 func main() {
 
 }
