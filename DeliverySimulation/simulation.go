@@ -85,13 +85,19 @@ func (truck *Truck) addLoad(trip Trip) error {
 	//initialize needed variables
 	var distance int
 	var timeRequired int
+	var totalLoad float32
 
 	/*Error checks*/
+
+	//Checks if vehicle already has a destination
 	if truck.destination != "" {
 		return errors.New("Error: Other destination")
 	}
 
-	if trip.weight > truck.capacity {
+	totalLoad = trip.weight + truck.load
+
+	//Checks if added weight from trip would exceed the vehicle capacity
+	if totalLoad > truck.capacity {
 		return errors.New("Error: Out of capacity")
 	}
 
@@ -105,14 +111,16 @@ func (truck *Truck) addLoad(trip Trip) error {
 	//Calculate time required
 	timeRequired = (distance) / int(truck.speed)
 
-	if trip.deadline > timeRequired {
+	//Checks if deadline is feasible with respect to the required travel time
+	if trip.deadline < timeRequired {
 		return errors.New("Error: Other destination")
 	}
 
 	//Passed all error checks
 	truck.destination = trip.destination
-	truck.capacity = trip.weight
+	truck.load = truck.load + trip.weight
 
+	//return nil if there's no error
 	return nil
 }
 
@@ -121,13 +129,19 @@ func (pickup *Pickup) addLoad(trip Trip) error {
 	//initialize needed variables
 	var distance int
 	var timeRequired int
+	var totalLoad float32
 
 	/*Error checks*/
+
+	//Checks if vehicle already has a destination
 	if pickup.destination != "" {
 		return errors.New("Error: Other destination")
 	}
 
-	if trip.weight > pickup.capacity {
+	totalLoad = trip.weight + pickup.load
+
+	//Checks if added weight from trip would exceed the vehicle capacity
+	if totalLoad > pickup.capacity {
 		return errors.New("Error: Out of capacity")
 	}
 
@@ -141,14 +155,16 @@ func (pickup *Pickup) addLoad(trip Trip) error {
 	//Calculate time required
 	timeRequired = (distance) / int(pickup.speed)
 
-	if trip.deadline > timeRequired {
+	//Checks if deadline is feasible with respect to the required travel time
+	if trip.deadline < timeRequired {
 		return errors.New("Error: Other destination")
 	}
 
 	//Passed all error checks
 	pickup.destination = trip.destination
-	pickup.capacity = trip.weight
+	pickup.load = pickup.load + trip.weight
 
+	//return nil if there's no error
 	return nil
 }
 
@@ -157,13 +173,19 @@ func (trainCar *TrainCar) addLoad(trip Trip) error {
 	//initialize needed variables
 	var distance int
 	var timeRequired int
+	var totalLoad float32
 
 	/*Error checks*/
+
+	//Checks if vehicle already has a destination
 	if trainCar.destination != "" {
 		return errors.New("Error: Other destination")
 	}
 
-	if trip.weight > trainCar.capacity {
+	totalLoad = trip.weight + trainCar.load
+
+	//Checks if added weight from trip would exceed the vehicle capacity
+	if totalLoad > trainCar.capacity {
 		return errors.New("Error: Out of capacity")
 	}
 
@@ -177,14 +199,16 @@ func (trainCar *TrainCar) addLoad(trip Trip) error {
 	//Calculate time required
 	timeRequired = (distance) / int(trainCar.speed)
 
-	if trip.deadline > timeRequired {
+	//Checks if deadline is feasible with respect to the required travel time
+	if trip.deadline < timeRequired {
 		return errors.New("Error: Other destination")
 	}
 
 	//Passed all error checks
 	trainCar.destination = trip.destination
-	trainCar.capacity = trip.weight
+	trainCar.load = trainCar.load + trip.weight
 
+	//return nil if there's no error
 	return nil
 }
 
