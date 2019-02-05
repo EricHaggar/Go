@@ -1,5 +1,7 @@
 package main
 
+import "errors"
+
 //Transporter is an interface which defines addLoad and print method signatures
 type Transporter interface {
 	addLoad(trip Trip) error
@@ -76,6 +78,42 @@ func NewTrainCar() *TrainCar {
 		load:        0,
 	},
 		""}
+}
+
+func (truck *Truck) addLoad(trip Trip) error {
+
+	//initialize needed variables
+	var distance int
+	var timeRequired int
+
+	/*Error checks*/
+	if truck.destination != "" {
+		return errors.New("Error: Other destination")
+	}
+
+	if trip.weight > truck.capacity {
+		return errors.New("Error: Out of capacity")
+	}
+
+	//Set distance from Montreal to 200 km and 400 km for Toronto
+	if trip.destination == "Montreal" {
+		distance = 200.0
+	} else {
+		distance = 400.0 //Toronto
+	}
+
+	//Calculate time required
+	timeRequired = (distance) / int(truck.speed)
+
+	if trip.deadline > timeRequired {
+		return errors.New("Error: Other destination")
+	}
+
+	//Passed all error checks
+	truck.destination = trip.destination
+	truck.capacity = trip.weight
+
+	return nil
 }
 
 func main() {
