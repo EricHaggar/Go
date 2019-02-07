@@ -1,6 +1,9 @@
 package main
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 //Transporter is an interface which defines addLoad and print method signatures
 type Transporter interface {
@@ -77,7 +80,7 @@ func NewTrainCar() *TrainCar {
 		capacity:    30,
 		load:        0,
 	},
-		""}
+		"CNR"}
 }
 
 func (truck *Truck) addLoad(trip Trip) error {
@@ -210,6 +213,35 @@ func (trainCar *TrainCar) addLoad(trip Trip) error {
 
 	//return nil if there's no error
 	return nil
+}
+
+//Print trip information for each type of vehicle
+func (truck *Truck) print() {
+	fmt.Printf("%v to %v with %f tons\n", truck.name, truck.destination, truck.load)
+}
+func (pickup *Pickup) print() {
+	fmt.Printf("%v to %v with %f tons (%+v)\n", pickup.name, pickup.destination, pickup.load, pickup.isPrivate)
+}
+func (trainCar *TrainCar) print() {
+	fmt.Printf("%v to %v with %f tons (%v)\n", trainCar.name, trainCar.destination, trainCar.load, trainCar.railway)
+}
+
+//NewTorontoTrip creates a new Trip to Toronto
+func NewTorontoTrip(weight float32, deadline int) *Trip {
+	return &Trip{
+		destination: "Toronto",
+		weight:      weight,
+		deadline:    deadline,
+	}
+}
+
+//NewMontrealTrip creates a new Trip to Montreal
+func NewMontrealTrip(weight float32, deadline int) *Trip {
+	return &Trip{
+		destination: "Montreal",
+		weight:      weight,
+		deadline:    deadline,
+	}
 }
 
 func main() {
