@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 //Transporter is an interface which defines addLoad and print method signatures
@@ -91,9 +92,8 @@ func (truck *Truck) addLoad(trip Trip) error {
 	var totalLoad float32
 
 	/*Error checks*/
-
 	//Checks if vehicle already has a destination
-	if truck.destination != "" {
+	if truck.destination != trip.destination && truck.destination != "" {
 		return errors.New("Error: Other destination")
 	}
 
@@ -104,24 +104,22 @@ func (truck *Truck) addLoad(trip Trip) error {
 		return errors.New("Error: Out of capacity")
 	}
 
-	//Set distance from Montreal to 200 km and 400 km for Toronto
-	if trip.destination == "Montreal" {
-		distance = 200.0
-	} else {
-		distance = 400.0 //Toronto
-	}
+	distance = SetDistance(trip)
 
-	//Calculate time required
-	timeRequired = (distance) / int(truck.speed)
+	//Calculate time required to destination
+	timeRequired = GetTimeRequired(truck.speed, distance)
 
 	//Checks if deadline is feasible with respect to the required travel time
 	if trip.deadline < timeRequired {
-		return errors.New("Error: Other destination")
+		return errors.New("Error: Can't meet deadline")
 	}
 
 	//Passed all error checks
-	truck.destination = trip.destination
-	truck.load = truck.load + trip.weight
+	truck.load = totalLoad
+
+	if truck.destination == "" {
+		truck.destination = trip.destination
+	}
 
 	//return nil if there's no error
 	return nil
@@ -135,9 +133,8 @@ func (pickup *Pickup) addLoad(trip Trip) error {
 	var totalLoad float32
 
 	/*Error checks*/
-
 	//Checks if vehicle already has a destination
-	if pickup.destination != "" {
+	if pickup.destination != trip.destination && pickup.destination != "" {
 		return errors.New("Error: Other destination")
 	}
 
@@ -148,24 +145,22 @@ func (pickup *Pickup) addLoad(trip Trip) error {
 		return errors.New("Error: Out of capacity")
 	}
 
-	//Set distance from Montreal to 200 km and 400 km for Toronto
-	if trip.destination == "Montreal" {
-		distance = 200.0
-	} else {
-		distance = 400.0 //Toronto
-	}
+	distance = SetDistance(trip)
 
-	//Calculate time required
-	timeRequired = (distance) / int(pickup.speed)
+	//Calculate time required to destination
+	timeRequired = GetTimeRequired(pickup.speed, distance)
 
 	//Checks if deadline is feasible with respect to the required travel time
 	if trip.deadline < timeRequired {
-		return errors.New("Error: Other destination")
+		return errors.New("Error: Can't meet deadline")
 	}
 
 	//Passed all error checks
-	pickup.destination = trip.destination
-	pickup.load = pickup.load + trip.weight
+	pickup.load = totalLoad
+
+	if pickup.destination == "" {
+		pickup.destination = trip.destination
+	}
 
 	//return nil if there's no error
 	return nil
@@ -179,9 +174,8 @@ func (trainCar *TrainCar) addLoad(trip Trip) error {
 	var totalLoad float32
 
 	/*Error checks*/
-
 	//Checks if vehicle already has a destination
-	if trainCar.destination != "" {
+	if trainCar.destination != trip.destination && trainCar.destination != "" {
 		return errors.New("Error: Other destination")
 	}
 
@@ -192,24 +186,22 @@ func (trainCar *TrainCar) addLoad(trip Trip) error {
 		return errors.New("Error: Out of capacity")
 	}
 
-	//Set distance from Montreal to 200 km and 400 km for Toronto
-	if trip.destination == "Montreal" {
-		distance = 200.0
-	} else {
-		distance = 400.0 //Toronto
-	}
+	distance = SetDistance(trip)
 
-	//Calculate time required
-	timeRequired = (distance) / int(trainCar.speed)
+	//Calculate time required to destination
+	timeRequired = GetTimeRequired(trainCar.speed, distance)
 
 	//Checks if deadline is feasible with respect to the required travel time
 	if trip.deadline < timeRequired {
-		return errors.New("Error: Other destination")
+		return errors.New("Error: Can't meet deadline")
 	}
 
 	//Passed all error checks
-	trainCar.destination = trip.destination
-	trainCar.load = trainCar.load + trip.weight
+	trainCar.load = totalLoad
+
+	if trainCar.destination == "" {
+		trainCar.destination = trip.destination
+	}
 
 	//return nil if there's no error
 	return nil
@@ -220,7 +212,7 @@ func (truck *Truck) print() {
 	fmt.Printf("%v to %v with %f tons\n", truck.name, truck.destination, truck.load)
 }
 func (pickup *Pickup) print() {
-	fmt.Printf("%v to %v with %f tons (%+v)\n", pickup.name, pickup.destination, pickup.load, pickup.isPrivate)
+	fmt.Printf("%v to %v with %f tons (Private: %v)\n", pickup.name, pickup.destination, pickup.load, pickup.isPrivate)
 }
 func (trainCar *TrainCar) print() {
 	fmt.Printf("%v to %v with %f tons (%v)\n", trainCar.name, trainCar.destination, trainCar.load, trainCar.railway)
@@ -244,6 +236,112 @@ func NewMontrealTrip(weight float32, deadline int) *Trip {
 	}
 }
 
+//SetDistance sets the distance with respect to the destination
+func SetDistance(trip Trip) (distance int) {
+
+	//Set distance from Montreal to 200 km and 400 km for Toronto
+	if trip.destination == "Montreal" {
+		distance = 200.0
+	} else {
+		distance = 400.0 //Toronto
+	}
+	return
+}
+
+//GetTimeRequired returns the travel time with respect to the speed and distance
+func GetTimeRequired(speed float32, distance int) (timeRequired int) {
+	return int(speed) / distance
+}
+
 func main() {
+
+	//Creating 2 Trucks, 3 Pickups and 1 TrainCar
+	truckA := NewTruck()
+	truckA.name = "Truck A"
+
+	truckB := NewTruck()
+	truckB.name = "Truck B"
+
+	pickUpA := NewPickUp()
+	pickUpA.name = "Pickup A"
+
+	pickUpB := NewPickUp()
+	pickUpB.name = "Pickup B"
+
+	pickUpC := NewPickUp()
+	pickUpC.name = "Pickup C"
+
+	trainCarA := NewTrainCar()
+	trainCarA.name = "TrainCar A"
+
+	transporters := []Transporter{truckA, truckB, pickUpA, pickUpB, pickUpC, trainCarA}
+
+	//Define needed variables
+	var weight float32
+	var deadline int
+	var trip *Trip
+	var trips []*Trip
+	var destination string
+
+	for {
+		fmt.Print("Destination: (t)oronto, (m)ontreal, else exit? ")
+		fmt.Scanln(&destination)
+
+		destination = strings.ToLower(destination)
+
+		if destination[0] == 'm' { //Montreal
+			destination = "Montreal"
+		} else if destination[0] == 't' { //Toronto
+			destination = "Toronto"
+		} else { //Quit
+			fmt.Print("Not going to TO or Montreal, bye! \n")
+			break
+		}
+
+		fmt.Print("Weight: ")
+		fmt.Scanln(&weight)
+
+		fmt.Print("Deadline (in hours): ")
+		fmt.Scanln(&deadline)
+
+		if destination == "Montreal" {
+			trip = NewMontrealTrip(weight, deadline)
+		} else {
+			trip = NewTorontoTrip(weight, deadline)
+		}
+
+		for i := range transporters {
+
+			err := transporters[i].addLoad(*trip)
+
+			if err == nil {
+				trips = append(trips, trip)
+				break
+			} else {
+				fmt.Println(err)
+				if i == len(transporters)-1 {
+					fmt.Println("Sorry, none of the Transporters can deliver!")
+					break
+				}
+			}
+		}
+	}
+
+	fmt.Print("Trips: [")
+
+	for i := range trips {
+		if i == len(trips)-1 {
+			fmt.Printf("{%v %g %d}", trips[i].destination, trips[i].weight, trips[i].deadline)
+		} else {
+			fmt.Printf("{%v %g %d} ", trips[i].destination, trips[i].weight, trips[i].deadline)
+		}
+	}
+	fmt.Print("]\n")
+
+	fmt.Println("Vehicles :")
+
+	for i := range transporters {
+		transporters[i].print()
+	}
 
 }
