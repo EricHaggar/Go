@@ -3,7 +3,10 @@ package main
 import (
 	"math"
 	"math/rand"
+	"sync"
 )
+
+var waitGroup sync.WaitGroup
 
 //Point defines a point with an x and y coordinate
 type Point struct {
@@ -16,6 +19,29 @@ type Triangle struct {
 	A Point
 	B Point
 	C Point
+}
+
+//Stack is a stack data structure implementation for Triangles
+type Stack struct {
+	semaphore chan bool
+	triangles []Triangle
+}
+
+//Push adds the triangle to the top of the stack
+func (stack *Stack) Push(triangle Triangle) {
+	stack.triangles = append(stack.triangles, triangle)
+}
+
+//Peek returns the top triangle on the stack without removing it
+func (stack *Stack) Peek() Triangle {
+	return stack.triangles[len(stack.triangles)-1]
+}
+
+//Pop removes the top triangle from the stack and returns it
+func (stack *Stack) Pop() Triangle {
+	topTriangle := stack.Peek()
+	stack.triangles = stack.triangles[0 : len(stack.triangles)-1]
+	return topTriangle
 }
 
 func triangles10000() [10000]Triangle {
