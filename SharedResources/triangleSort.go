@@ -151,7 +151,7 @@ func main() {
 
 	fmt.Println()
 	fmt.Printf("HighRatio Stack size : %d triangles\n", len(highStack.triangles))
-	fmt.Println("Triangle at the top of the LowRatio stack:")
+	fmt.Println("Triangle at the top of the HighRatio stack:")
 	fmt.Printf("Coordinates: Point A (%f, %f), Point B (%f, %f), Point C (%f, %f) \n", highStackTop.A.x, highStackTop.A.y, highStackTop.B.x, highStackTop.B.y, highStackTop.C.x, highStackTop.C.y)
 
 }
