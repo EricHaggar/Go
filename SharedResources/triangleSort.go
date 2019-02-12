@@ -1,12 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"sync"
 )
-
-var waitGroup sync.WaitGroup
 
 //Point defines a point with an x and y coordinate
 type Point struct {
@@ -23,24 +22,31 @@ type Triangle struct {
 
 //Stack is a stack data structure implementation for Triangles
 type Stack struct {
-	semaphore chan bool
+	semaphore chan int
 	triangles []Triangle
 }
 
 //Push adds the triangle to the top of the stack
 func (stack *Stack) Push(triangle Triangle) {
+	stack.semaphore <- 1 //acquire semaphore
 	stack.triangles = append(stack.triangles, triangle)
+	<-stack.semaphore //release semaphore
 }
 
 //Peek returns the top triangle on the stack without removing it
 func (stack *Stack) Peek() Triangle {
-	return stack.triangles[len(stack.triangles)-1]
+	stack.semaphore <- 1
+	topTriangle := stack.triangles[len(stack.triangles)-1]
+	<-stack.semaphore
+	return topTriangle
 }
 
 //Pop removes the top triangle from the stack and returns it
 func (stack *Stack) Pop() Triangle {
+	stack.semaphore <- 1
 	topTriangle := stack.Peek()
 	stack.triangles = stack.triangles[0 : len(stack.triangles)-1]
+	<-stack.semaphore
 	return topTriangle
 }
 
@@ -68,7 +74,6 @@ func (t Triangle) Perimeter() float64 {
 	perimeter = sideLengthA + sideLengthB + sideLengthC
 
 	return perimeter
-
 }
 
 //Area calculates the area of a Triangle
@@ -92,6 +97,61 @@ func CalculateLength(x2 float64, x1 float64, y2 float64, y1 float64) float64 {
 	return math.Sqrt(math.Pow(x2-x1, 2) + math.Pow(y2-y1, 2))
 }
 
+func classifyTriangle(highRatio *Stack, lowRatio *Stack, ratioThreshold float64, triangles []Triangle, waitGroup *sync.WaitGroup) {
+
+	defer waitGroup.Done()
+
+	for i := range triangles {
+
+		ratio := triangles[i].Perimeter() / triangles[i].Area()
+
+		if ratio < ratioThreshold {
+			lowRatio.Push(triangles[i])
+		} else {
+			highRatio.Push(triangles[i])
+		}
+	}
+}
+
 func main() {
+
+	var waitGroup sync.WaitGroup
+	ratioThreshold := 1.0
+
+	triangles := triangles10000()
+
+	//Create semaphores
+	lowStackSemaphore := make(chan int, 1)
+	highStackSemaphore := make(chan int, 1)
+
+	//Create stacks
+	lowStack := Stack{lowStackSemaphore, []Triangle{}}
+	highStack := Stack{highStackSemaphore, []Triangle{}}
+
+	for i := 0; i < 10; i++ {
+
+		waitGroup.Add(1)
+		go classifyTriangle(&highStack, &lowStack, ratioThreshold, triangles[i*10:(i*10)+1000], &waitGroup)
+	}
+
+	waitGroup.Wait()
+
+	//Goroutines are finished executing
+
+	lowStackTop := lowStack.Peek()
+	highStackTop := highStack.Peek()
+
+	fmt.Print("\n")
+	fmt.Println("\t\t\tResults")
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println()
+	fmt.Printf("LowRatio Stack size : %d triangles\n", len(lowStack.triangles))
+	fmt.Println("Triangle at the top of the LowRatio stack:")
+	fmt.Printf("Coordinates: Point A (%f, %f), Point B (%f, %f), Point C (%f, %f) \n", lowStackTop.A.x, lowStackTop.A.y, lowStackTop.B.x, lowStackTop.B.y, lowStackTop.C.x, lowStackTop.C.y)
+
+	fmt.Println()
+	fmt.Printf("HighRatio Stack size : %d triangles\n", len(highStack.triangles))
+	fmt.Println("Triangle at the top of the LowRatio stack:")
+	fmt.Printf("Coordinates: Point A (%f, %f), Point B (%f, %f), Point C (%f, %f) \n", highStackTop.A.x, highStackTop.A.y, highStackTop.B.x, highStackTop.B.y, highStackTop.C.x, highStackTop.C.y)
 
 }
